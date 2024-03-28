@@ -1,5 +1,6 @@
 
 from flask import Blueprint, app, request
+import uuid
 
 from app.database.db import generate_dbresource
 
@@ -12,20 +13,18 @@ def crear_reserva():
         dynamodb = generate_dbresource()
         table = dynamodb.Table('reservation')
         data = request.get_json()
-        print(data)
 
         if ('room_number' or 'date' or 'time') not in data:
             return 'Faltan parámetros', 400
 
+        reservation_id = str(uuid.uuid4())
         room_number = data['room_number']
-        print(room_number)
         date = data['date']
-        print(date)
         time = data['time']
-        print(time)
 
         table.put_item(
             Item={
+                'id': reservation_id,
                 'room_number': room_number,
                 'date': date,
                 'time': time
