@@ -1,5 +1,7 @@
 
-from flask import Blueprint, app, request
+from flask import Blueprint, app, jsonify, request
+from datetime import datetime, timedelta
+from boto3.dynamodb.conditions import Key
 import uuid
 
 from app.database.db import generate_dbresource
@@ -8,7 +10,7 @@ RESERVATION = Blueprint('RESERVATION', __name__)
 
 
 @RESERVATION.route('/makeReservation', methods=['POST'])
-def crear_reserva():
+def make_reservation():
     try:
         dynamodb = generate_dbresource()
         table = dynamodb.Table('reservation')
@@ -30,7 +32,25 @@ def crear_reserva():
                 'time': time
             }
         )
-        return 'Reserva creada exitosamente', 201
+        return 'Reservation created successfully', 201
 
+    except Exception as e:
+        return str(e), 500
+
+
+@RESERVATION.route('/getReservation', methods=['GET'])
+def get_reservation():
+    try:
+        dynamodb = generate_dbresource()
+        table = dynamodb.Table('reservation')
+        today = datetime.now().strftime("%d/%m/%Y")
+        tomorrow = (datetime.now() + timedelta(days=1)).strftime("%d/%m/%Y")
+
+        response = table.scan(
+            FilterExpression=Key('date').eq(today) | Key('date').eq(tomorrow)
+        )
+
+        items = response['Items']
+        return jsonify(items), 200
     except Exception as e:
         return str(e), 500
