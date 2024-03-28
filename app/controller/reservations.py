@@ -6,19 +6,24 @@ from app.database.db import generate_dbresource
 RESERVATION = Blueprint('RESERVATION', __name__)
 
 
-@RESERVATION.route('/make_reservation', methods=['POST'])
+@RESERVATION.route('/makeReservation', methods=['POST'])
 def crear_reserva():
-    dynamodb = generate_dbresource()
-    table = dynamodb.Table('reservation')
-    data = request.get_json()
-    room_number = data['room_number']
-    date = data['date']
-    time = data['time']
-
-    if room_number is None or date is None or time is None:
-        return 'Faltan parámetros', 400
-
     try:
+        dynamodb = generate_dbresource()
+        table = dynamodb.Table('reservation')
+        data = request.get_json()
+        print(data)
+
+        if ('room_number' or 'date' or 'time') not in data:
+            return 'Faltan parámetros', 400
+
+        room_number = data['room_number']
+        print(room_number)
+        date = data['date']
+        print(date)
+        time = data['time']
+        print(time)
+
         table.put_item(
             Item={
                 'room_number': room_number,
