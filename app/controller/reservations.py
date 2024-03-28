@@ -16,20 +16,19 @@ def make_reservation():
         table = dynamodb.Table('reservation')
         data = request.get_json()
 
-        if ('room_number' or 'date' or 'time') not in data:
-            return 'Faltan parámetros', 400
+        if ('date' or 'time') not in data:
+            return 'Parameters are missing', 400
 
         reservation_id = str(uuid.uuid4())
-        room_number = data['room_number']
         date = data['date']
         time = data['time']
 
         table.put_item(
             Item={
                 'id': reservation_id,
-                'room_number': room_number,
                 'date': date,
-                'time': time
+                'time': time,
+                'status': 'active'
             }
         )
         return 'Reservation created successfully', 201
@@ -47,10 +46,47 @@ def get_reservation():
         tomorrow = (datetime.now() + timedelta(days=1)).strftime("%d/%m/%Y")
 
         response = table.scan(
-            FilterExpression=Key('date').eq(today) | Key('date').eq(tomorrow)
+            FilterExpression=Key('date').eq(today) | Key(
+                'date').eq(tomorrow) & Key('status').eq('active')
         )
 
         items = response['Items']
         return jsonify(items), 200
+
+    except Exception as e:
+        return str(e), 500
+
+
+@RESERVATION.route('/cancelReservation', methods=['PUT'])
+def cancel_reservation():
+    try:
+        dynamodb = generate_dbresource()
+        table = dynamodb.Table('reservation')
+        data = request.get_json()
+
+        if ('date' or 'time') not in data:
+            return 'Parameters are missing', 400
+
+        date = data['date']
+        time = data['time']
+
+        response = table.scan(
+            FilterExpression=Key('date').eq(date) & Key('time').eq(time)
+        )
+        items = response['Items']
+
+        if not items:
+            return 'Reservation not found', 404
+
+        for item in items:
+            table.update_item(
+                Key={'id': item['id']},
+                UpdateExpression='SET #status = :status',
+                ExpressionAttributeNames={'#status': 'status'},
+                ExpressionAttributeValues={':status': 'canceled'}
+            )
+
+        return 'Reservation successfully canceled', 200
+
     except Exception as e:
         return str(e), 500
