@@ -1,8 +1,8 @@
 from flask import jsonify, request
 import boto3
 
-AWS_ACCESS_KEY_ID = ""
-AWS_SECRET_ACCESS_KEY = ""
+AWS_ACCESS_KEY_ID = "AKIAVRVSABSPCP2O6BF"
+AWS_SECRET_ACCESS_KEY = "BqyNhihqPdAIy+LOfEnsjORwwfDrQlvb/PRYpeF"
 
 
 def generate_dbclient():
