@@ -1,6 +1,9 @@
 from flask import Flask
 
-app = Flask(__name__)
+from app.controller.reservations import RESERVATION
+
+APP = Flask(__name__)
+APP.register_blueprint(RESERVATION)
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port='8083', debug=True)
+    APP.run(host='0.0.0.0', port='8083', debug=True)

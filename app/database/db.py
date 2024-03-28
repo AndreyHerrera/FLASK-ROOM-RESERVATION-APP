@@ -3,5 +3,8 @@ import boto3
 
 
 def generate_dbclient():
-    return boto3.client('dynamodb', region_name='us-west-2',
-                        endpoint_url='http://localhost:8888')
+    return boto3.client('dynamodb', region_name='us-east-1')
+
+
+def generate_dbresource():
+    return boto3.resource('dynamodb', region_name='us-east-1')
