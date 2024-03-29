@@ -1,4 +1,4 @@
-from flask import Blueprint, app, jsonify, request
+from flask import Blueprint, jsonify, request
 from datetime import datetime, timedelta
 from boto3.dynamodb.conditions import Key
 import uuid
@@ -44,12 +44,12 @@ def get_reservation():
         today = datetime.now().strftime("%d/%m/%Y")
         tomorrow = (datetime.now() + timedelta(days=1)).strftime("%d/%m/%Y")
 
-        response = table.scan(
+        response_table = table.scan(
             FilterExpression=Key('date').eq(today) | Key(
                 'date').eq(tomorrow) & Key('status').eq('active')
         )
 
-        items = response['Items']
+        items = response_table['Items']
         return jsonify(items), 200
 
     except Exception as e:
@@ -69,10 +69,10 @@ def cancel_reservation():
         date = data['date']
         time = data['time']
 
-        response = table.scan(
+        response_table = table.scan(
             FilterExpression=Key('date').eq(date) & Key('time').eq(time)
         )
-        items = response['Items']
+        items = response_table['Items']
 
         if not items:
             return 'Reservation not found', 404
