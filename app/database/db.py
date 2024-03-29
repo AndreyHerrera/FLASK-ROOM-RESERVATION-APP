@@ -1,4 +1,3 @@
-from flask import jsonify, request
 import boto3
 
 AWS_ACCESS_KEY_ID = ""
