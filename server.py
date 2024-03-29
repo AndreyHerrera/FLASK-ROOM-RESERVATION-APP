@@ -3,6 +3,7 @@ from flask import Flask
 from app.controller.reservations import RESERVATION
 
 APP = Flask(__name__)
+APP.config['KEY_USER'] = ''
 APP.register_blueprint(RESERVATION)
 
 if __name__ == "__main__":

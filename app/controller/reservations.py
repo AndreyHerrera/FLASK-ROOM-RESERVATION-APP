@@ -1,4 +1,3 @@
-
 from flask import Blueprint, app, jsonify, request
 from datetime import datetime, timedelta
 from boto3.dynamodb.conditions import Key
