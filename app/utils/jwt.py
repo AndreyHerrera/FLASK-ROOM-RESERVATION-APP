@@ -4,10 +4,10 @@ import jwt
 KEY_ENCRIPT = "WOLFANGHERRERA"
 
 
-def encode_jwt(email, date):
+def encode_jwt(email):
     payload = {
         'email': email,
-        'exp': datetime.utcnow() + timedelta(minutes=1)
+        'exp': datetime.utcnow() + timedelta(minutes=10)
     }
     key = KEY_ENCRIPT
 
