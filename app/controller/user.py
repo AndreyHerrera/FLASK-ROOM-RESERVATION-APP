@@ -59,7 +59,7 @@ def login_user():
         response = {'status': False}
         if response_table['Items']:
 
-            token = encode_jwt(email, date)
+            token = encode_jwt(email)
 
             response['status'] = True
             response['token'] = token

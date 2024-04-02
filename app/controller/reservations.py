@@ -15,11 +15,12 @@ def make_reservation():
         table = dynamodb.Table('reservation')
         data = request.get_json()
 
-        if ('date' or 'time') not in data:
+        if ('date' or 'time' or 'user') not in data:
             return 'Parameters are missing', 400
 
         reservation_id = str(uuid.uuid4())
         date = data['date']
+        user = data['user']
         time = data['time']
 
         table.put_item(
@@ -27,6 +28,7 @@ def make_reservation():
                 'id': reservation_id,
                 'date': date,
                 'time': time,
+                'user': user,
                 'status': 'active'
             }
         )
@@ -44,9 +46,15 @@ def get_reservation():
         today = datetime.now().strftime("%d/%m/%Y")
         tomorrow = (datetime.now() + timedelta(days=1)).strftime("%d/%m/%Y")
 
+        data = request.get_json()
+
+        if 'user' not in data:
+            return 'Parameters are missing', 400
+
+        user = data['user']
         response_table = table.scan(
             FilterExpression=Key('date').eq(today) | Key(
-                'date').eq(tomorrow) & Key('status').eq('active')
+                'date').eq(tomorrow) & Key('status').eq('active') & Key('user').eq(user)
         )
 
         items = response_table['Items']
@@ -63,14 +71,16 @@ def cancel_reservation():
         table = dynamodb.Table('reservation')
         data = request.get_json()
 
-        if ('date' or 'time') not in data:
+        if ('date' or 'time' or 'user') not in data:
             return 'Parameters are missing', 400
 
         date = data['date']
+        user = data['user']
         time = data['time']
 
         response_table = table.scan(
-            FilterExpression=Key('date').eq(date) & Key('time').eq(time)
+            FilterExpression=Key('date').eq(date) & Key(
+                'time').eq(time) & Key('user').eq(user)
         )
         items = response_table['Items']
 
