@@ -38,7 +38,7 @@ def make_reservation():
         return str(e), 500
 
 
-@RESERVATION.route('/getReservation', methods=['GET'])
+@RESERVATION.route('/getReservation', methods=['POST'])
 def get_reservation():
     try:
         dynamodb = generate_dbresource()
@@ -69,6 +69,7 @@ def get_reservation():
         return jsonify(items), 200
 
     except Exception as e:
+        print(e)
         return str(e), 500
 
 
