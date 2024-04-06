@@ -24,13 +24,13 @@ def register_user():
         user = data['user']
         password = encrypt(data['password'])
 
-        # table_user.put_item(
-        #     Item={
-        #         'id': user_id,
-        #         'user': user,
-        #         'password': password,
-        #     }
-        # )
+        table_user.put_item(
+            Item={
+                'id': user_id,
+                'user': user,
+                'password': password,
+            }
+        )
 
         return {'status': True}, 201
 
