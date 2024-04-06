@@ -55,17 +55,26 @@ def get_reservation():
 
         user = data['user']
         response_table_user = table.scan(
-            FilterExpression=Key('date').eq(day_next_tomorrow) | Key(
-                'date').eq(tomorrow) & Key('user').eq(user)
+            FilterExpression=(Key('date').eq(day_next_tomorrow) | Key(
+                'date').eq(tomorrow)) & Key('user').eq(user)
         )
 
-        response_table = table.scan(
-            FilterExpression=Key('date').eq(day_next_tomorrow) | Key(
-                'date').eq(tomorrow) & Key('status').eq('active')
+        response_table_tomorrow = table.scan(
+            FilterExpression=Key(
+                'date').eq(tomorrow) & Key('status').eq('active'),
+            ProjectionExpression='#T',  # Utilizamos un alias para el atributo 'time'
+            ExpressionAttributeNames={'#T': 'time'}
+        )
+        response_table_next_tomorrow = table.scan(
+            FilterExpression=Key('date').eq(
+                day_next_tomorrow) & Key('status').eq('active'),
+            ProjectionExpression='#T',  # Utilizamos un alias para el atributo 'time'
+            ExpressionAttributeNames={'#T': 'time'}
         )
 
         items.append(response_table_user['Items'])
-        items.append(response_table['Items'])
+        items.append(response_table_tomorrow['Items'])
+        items.append(response_table_next_tomorrow['Items'])
         return jsonify(items), 200
 
     except Exception as e:
@@ -104,7 +113,8 @@ def cancel_reservation():
                 ExpressionAttributeValues={':status': 'canceled'}
             )
 
-        return 'Reservation successfully canceled', 200
+        return {'status': True}, 201
 
     except Exception as e:
+        print(e)
         return str(e), 500
