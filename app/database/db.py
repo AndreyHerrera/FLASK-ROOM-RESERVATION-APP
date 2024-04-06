@@ -1,7 +1,7 @@
 import boto3
 
-AWS_ACCESS_KEY_ID = ""
-AWS_SECRET_ACCESS_KEY = ""
+AWS_ACCESS_KEY_ID = "AKIAVRUVSABSPCP2O6BF"
+AWS_SECRET_ACCESS_KEY = "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"
 
 
 def generate_dbclient():
