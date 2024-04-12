@@ -17,24 +17,25 @@ def register_user():
         table_user = dynamodb.Table('user')
         data = request.get_json()
 
-        if ('email' or 'password') not in data:
+        if ('user' or 'password') not in data:
             return 'Parameters are missing', 400
 
         user_id = str(uuid.uuid4())
-        email = data['email']
+        user = data['user']
         password = encrypt(data['password'])
 
         table_user.put_item(
             Item={
                 'id': user_id,
-                'email': email,
+                'user': user,
                 'password': password,
             }
         )
-        return 'User created successfully', 201
 
-    except Exception as e:
-        return str(e), 500
+        return {'status': True}, 201
+
+    except Exception:
+        return {'status': False}, 500
 
 
 @USER.route('/loginUser', methods=['POST'])
@@ -44,38 +45,37 @@ def login_user():
         table_user = dynamodb.Table('user')
         data = request.get_json()
 
-        if ('email' or 'password') not in data:
+        if ('user' or 'password') not in data:
             return 'Parameters are missing', 400
 
-        email = data['email']
+        user = data['user']
         password = encrypt(data['password'])
 
         response_table = table_user.scan(
             FilterExpression=Key(
-                'email').eq(email) & Key('password').eq(password)
+                'user').eq(user) & Key('password').eq(password)
         )
 
-        date = datetime.now().strftime('%d/%m/%Y %H:%M')
         response = {'status': False}
         if response_table['Items']:
 
-            token = encode_jwt(email)
+            token = encode_jwt(user)
 
             response['status'] = True
             response['token'] = token
 
-            table_session = dynamodb.Table('session')
-            table_session.put_item(
-                Item={
-                    'token': token,
-                    'email': email,
-                }
-            )
+            # table_session = dynamodb.Table('session')
+            # table_session.put_item(
+            #     Item={
+            #         'token': token,
+            #         'user': user,
+            #     }
+            # )
 
         return response, 200
 
-    except Exception as e:
-        return str(e), 500
+    except Exception:
+        return response, 200
 
 
 @USER.route('/validateSession', methods=['POST'])
@@ -85,15 +85,15 @@ def validate_session():
         table = dynamodb.Table('session')
         data = request.get_json()
 
-        if ('email' or 'token') not in data:
+        if ('user' or 'token') not in data:
             return 'Parameters are missing', 400
 
-        email = data['email']
+        user = data['user']
         token = data['token']
 
         response_table = table.scan(
             FilterExpression=Key(
-                'email').eq(email) & Key('token').eq(token)
+                'user').eq(user) & Key('token').eq(token)
         )
         if response_table['Items']:
             validated = decode_jwt(token)

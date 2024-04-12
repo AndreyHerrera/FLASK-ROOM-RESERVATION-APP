@@ -38,29 +38,47 @@ def make_reservation():
         return str(e), 500
 
 
-@RESERVATION.route('/getReservation', methods=['GET'])
+@RESERVATION.route('/getReservation', methods=['POST'])
 def get_reservation():
     try:
         dynamodb = generate_dbresource()
         table = dynamodb.Table('reservation')
-        today = datetime.now().strftime("%d/%m/%Y")
         tomorrow = (datetime.now() + timedelta(days=1)).strftime("%d/%m/%Y")
+        day_next_tomorrow = (
+            datetime.now() + timedelta(days=2)).strftime("%d/%m/%Y")
 
         data = request.get_json()
+        items = []
 
         if 'user' not in data:
             return 'Parameters are missing', 400
 
         user = data['user']
-        response_table = table.scan(
-            FilterExpression=Key('date').eq(today) | Key(
-                'date').eq(tomorrow) & Key('status').eq('active') & Key('user').eq(user)
+        response_table_user = table.scan(
+            FilterExpression=(Key('date').eq(day_next_tomorrow) | Key(
+                'date').eq(tomorrow)) & Key('user').eq(user)
         )
 
-        items = response_table['Items']
+        response_table_tomorrow = table.scan(
+            FilterExpression=Key(
+                'date').eq(tomorrow) & Key('status').eq('active'),
+            ProjectionExpression='#T',  # Utilizamos un alias para el atributo 'time'
+            ExpressionAttributeNames={'#T': 'time'}
+        )
+        response_table_next_tomorrow = table.scan(
+            FilterExpression=Key('date').eq(
+                day_next_tomorrow) & Key('status').eq('active'),
+            ProjectionExpression='#T',  # Utilizamos un alias para el atributo 'time'
+            ExpressionAttributeNames={'#T': 'time'}
+        )
+
+        items.append(response_table_user['Items'])
+        items.append(response_table_tomorrow['Items'])
+        items.append(response_table_next_tomorrow['Items'])
         return jsonify(items), 200
 
     except Exception as e:
+        print(e)
         return str(e), 500
 
 
@@ -95,7 +113,8 @@ def cancel_reservation():
                 ExpressionAttributeValues={':status': 'canceled'}
             )
 
-        return 'Reservation successfully canceled', 200
+        return {'status': True}, 201
 
     except Exception as e:
+        print(e)
         return str(e), 500
